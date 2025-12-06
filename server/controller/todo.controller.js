@@ -36,7 +36,7 @@ const addTodo = async (req, res) => {
     });
     write_file("todo.json", todoList);
     res.status(200).json({
-      message: "Added new Todo"
+      message: "Added new Todo",
     });
   } catch (error) {
     console.log(error.message);
@@ -132,8 +132,8 @@ const deleteTodo = async (req, res) => {
       }
     });
     write_file("todo.json", todoList);
-    res.status("201").json({
-      message: "Delete todo"
+    res.status(201).json({
+      message: "Todo is deleted",
     });
   } catch (error) {
     console.log(error.message);
