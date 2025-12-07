@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { Bounce, ToastContainer, toast } from "react-toastify";
+import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
 
 function App() {
   const [todo, setTodo] = useState([]);
@@ -10,8 +13,10 @@ function App() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isChecked, setIsChecked] = useState({});
+  const [editId, setEditId] = useState(null);
 
-  // get/
+  // get
   const getTodo = () => {
     fetch("http://localhost:4444/get_all_todo")
       .then((res) => res.json())
@@ -30,23 +35,50 @@ function App() {
   // add
 
   const addTodo = (event) => {
-    event.preventDefault();
-    fetch("http://localhost:4444/add_todo", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        list: list.split(",").map((t) => t.trim()),
-      }),
-    })
-      .then((res) => res.json())
-      .then((info) => {
-        alert(info.message);
-        getTodo();
+    if (editId) {
+      fetch("http://localhost:4444/update_todo/" + editId, {
+        method: "PATCH",
+        headers: {
+          authorization: "Bearer " + localStorage.getItem("token"),
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          list: list.split(",").map((t) => t.trim()),
+        }),
       })
-      .catch((error) => console.log(error.message));
+        .then((res) => res.json())
+        .then((info) => {
+          toast.info(info.message);
+          getTodo();
+          myReset();
+          myEdit();
+        })
+        .catch((error) => console.log(error.message));
+    } else {
+      event.preventDefault();
+      fetch("http://localhost:4444/add_todo", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          list: list.split(",").map((t) => t.trim()),
+        }),
+      })
+        .then((res) => res.json())
+        .then((info) => {
+          if (info.message === "title and list are required") {
+            toast.error(info.message);
+          } else {
+            toast.success(info.message);
+          }
+          getTodo();
+          myReset();
+        })
+        .catch((error) => console.log(error.message));
+    }
   };
 
   // delete
@@ -59,7 +91,7 @@ function App() {
     })
       .then((res) => res.json())
       .then((info) => {
-        alert(info.message);
+        toast.error(info.message);
         getTodo();
       })
       .catch((error) => console.log(error.message));
@@ -77,9 +109,10 @@ function App() {
     })
       .then((res) => res.json())
       .then((info) => {
-        alert(info.message);
+        toast(info.message);
         getUser();
         setIsRegister(false);
+        myReset();
       })
       .catch((error) => console.log(error.message));
   };
@@ -96,8 +129,9 @@ function App() {
     })
       .then((res) => res.json())
       .then((info) => {
-        alert(info.message);
+        toast(info.message);
         setIsLogin(false);
+        myReset();
       })
       .catch((error) => console.log(error.message));
   };
@@ -105,8 +139,68 @@ function App() {
   useEffect(() => {
     getTodo(), getUser();
   }, []);
+
+  const myEdit = (item) => {
+    setEditId(item.id);
+    setTitle(item.title);
+    setList(item.list.join(","));
+  };
+
+  const myReset = () => {
+    setEditId(null);
+    setTitle("");
+    setList("");
+  };
+
+  //// delete list
+
+  const editList = async (id) => {
+    try {
+      const item = todo.find((t) => t.id === id);
+      if (!item) return;
+
+      const updatedList = item.list.filter((_, i) => !isChecked[id]?.[i]);
+
+      const res = await fetch(`http://localhost:4444/update_todo/${id}`, {
+        method: "PATCH",
+        headers: {
+          authorization: "Bearer " + localStorage.getItem("token"),
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          title: item.title,
+          list: updatedList,
+        }),
+      });
+
+      const data = await res.json();
+
+      toast.info(data.message);
+
+      setTodo((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, list: updatedList } : t))
+      );
+
+      setIsChecked((prev) => ({ ...prev, [id]: {} }));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
   return (
     <div className="container">
+      <ToastContainer
+        position="top-center"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
         <div className="container-fluid ">
           <a className="navbar-brand" href="#">
@@ -265,27 +359,66 @@ function App() {
           onChange={(el) => setList(el.target.value)}
         />
         <button className="btn btn-primary" type="submit">
-          send
+          {editId ? "update" : "send"}
         </button>
       </form>
       <div className="card-box">
         {todo.map((item) => (
           <div key={item.id} className="todo-card">
+            <h4>{"for " + item.username}</h4>
             <h3>{item.title}</h3>
             <ul>
-              {item.list.map((e, i) => (
-                <li key={i}>
-                  <input type="checkbox" />
-                  {e}
-                </li>
-              ))}
+              {item.list.map((e, i) => {
+                const checked = isChecked[item.id]?.[i] || false;
+
+                return (
+                  <li key={i}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        setIsChecked((prev) => ({
+                          ...prev,
+                          [item.id]: {
+                            ...prev[item.id],
+                            [i]: !checked,
+                          },
+                        }));
+                      }}
+                    />
+
+                    <span
+                      style={{
+                        textDecoration: checked ? "line-through" : "none",
+                        opacity: checked ? 0.5 : 1,
+                        transition: "all .2s ease",
+                      }}
+                    >
+                      {e}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="card-buttons">
+              <button className="btn btn-info " onClick={() => myEdit(item)}>
+                edit todo
+              </button>
+
               <button
-                className="btn btn-danger"
+                className="btn btn-success ms-2 "
+                onClick={() => editList(item.id)}
+              >
+                delete list
+              </button>
+
+              <button
+                className="btn btn-danger ms-2"
                 onClick={() => deleteTodo(item.id)}
               >
-                delete
+                delete todo
               </button>
-            </ul>
+            </div>
           </div>
         ))}
         <div className="todo-card">

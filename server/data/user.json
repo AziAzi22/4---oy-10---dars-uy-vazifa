@@ -19,5 +19,12 @@
         "username": "Hitler",
         "email": "berlin@gmail.com",
         "password": "$2b$14$0CZNLyyjKcZFqA2qAviyCuNbt6wK9ApFlYq2Gmlcl3nilBOKGucLW"
+    },
+    {
+        "id": "2b71c32d-669e-40bb-82e7-c7a594530dba",
+        "role": "user",
+        "username": "ali",
+        "email": "ali@gmail.com",
+        "password": "$2b$14$qkqz2QbiTOyhHi9SFksfXem.ZGc9vQsN8PZ3V.rhWJ/VwhRsP/B/e"
     }
 ]

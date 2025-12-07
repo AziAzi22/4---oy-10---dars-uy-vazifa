@@ -1,6 +1,8 @@
 const { v4 } = require("uuid");
 const { read_file, write_file } = require("../fs/file-manager");
 const bcrypt = require("bcryptjs");
+const tokenGenerator = require("../utils/token-generator");
+
 // register
 
 const register = async (req, res) => {
@@ -65,8 +67,15 @@ const login = async (req, res) => {
   const decode = await bcrypt.compare(password, foundedUser.password);
 
   if (decode) {
+    const payload = {
+      id: foundedUser.id,
+      username: foundedUser.username
+    };
+    const token = tokenGenerator(payload);
+
     res.status(200).json({
       message: "Succes",
+      token: token
     });
   } else {
     return res.status(401).json({

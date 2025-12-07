@@ -29,6 +29,11 @@ const addTodo = async (req, res) => {
   try {
     const todoList = read_file("todo.json");
     const { title, list } = req.body;
+        if (!title || !list) {
+      return res.status(400).json({
+        message: "title and list are required",
+      });
+    }
     todoList.push({
       id: v4(),
       title,
