@@ -14,8 +14,8 @@ const todoRouter = Router();
 todoRouter.get("/get_all_todo", getAllTodo);
 todoRouter.get("/get_one_tod/:id", getOneTodo);
 todoRouter.post("/add_todo", addTodo);
-todoRouter.patch("/update_todo/:id", authorization, upgradeTodo);
-todoRouter.delete("/delete_todo/:id", authorization, deleteTodo);
+todoRouter.patch("/update_todo/:id", upgradeTodo);
+todoRouter.delete("/delete_todo/:id", deleteTodo);
 todoRouter.get("/get_all_user", getAllUser);
 
 module.exports = todoRouter;

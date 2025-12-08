@@ -26,5 +26,12 @@
         "username": "ali",
         "email": "ali@gmail.com",
         "password": "$2b$14$qkqz2QbiTOyhHi9SFksfXem.ZGc9vQsN8PZ3V.rhWJ/VwhRsP/B/e"
+    },
+    {
+        "id": "d0404616-0f64-417e-8b1d-dbca9723e4ae",
+        "role": "user",
+        "username": "ali11",
+        "email": "ali11@gmail.com",
+        "password": "$2b$14$UTo7T7hyEc7iRmg2k3RR8OmkOoAYWdS8QSB7hAc44wahxFArJW48G"
     }
 ]

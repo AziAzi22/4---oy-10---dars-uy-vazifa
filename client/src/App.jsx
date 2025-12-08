@@ -60,6 +60,7 @@ function App() {
       fetch("http://localhost:4444/add_todo", {
         method: "POST",
         headers: {
+          authorization: "Bearer " + localStorage.getItem("token"),
           "Content-type": "application/json",
         },
         body: JSON.stringify({
@@ -85,9 +86,10 @@ function App() {
   const deleteTodo = (id) => {
     fetch("http://localhost:4444/delete_todo/" + id, {
       method: "DELETE",
-      headers: {
-        "Content-type": "application/json",
-      },
+    headers: {
+      authorization: "Bearer " + localStorage.getItem("token"),
+      "Content-type": "application/json",
+    },
     })
       .then((res) => res.json())
       .then((info) => {
@@ -130,6 +132,9 @@ function App() {
       .then((res) => res.json())
       .then((info) => {
         toast(info.message);
+        if (info.token) {
+          localStorage.setItem("token", info.token);
+        }
         setIsLogin(false);
         myReset();
       })

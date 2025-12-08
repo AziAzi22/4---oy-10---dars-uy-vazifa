@@ -3,38 +3,29 @@ const jwt = require("jsonwebtoken");
 const authorization = (req, res, next) => {
   try {
     const bearerToken = req.headers.authorization;
-    const { username } = req.body;
+
     if (!bearerToken) {
       return res.status(401).json({
-        messsage: "Bearer token not found",
+        messsage: "Authorization header missing",
       });
     }
 
-    const token = bearerToken.split(" ");
+    const [type, token] = bearerToken.split(" ");
 
-    if (token[0] !== "Bearer") {
+    if (type !== "Bearer" || !token) {
       return res.status(401).json({
-        messsage: "Bearer token is required",
+        messsage: "Invalid authorization format",
       });
     }
 
-    if (!token[1]) {
-      return res.status(401).json({
-        messsage: "token not found",
-      });
-    }
+    const decode = jwt.verify(token, "secretkey");
 
-    const decode = jwt.verify(token[1], "secretkey");
-    if (decode.username === username) {
-      return res.status(403).json({
-        messsage: "you are not a " + username,
-      });
-    }
     req.user = decode;
+
     next();
   } catch (error) {
-    res.status(500).json({
-      messsage: error.messsage,
+    res.status(401).json({
+      messsage: "Invalid or expired token",
     });
   }
 };
